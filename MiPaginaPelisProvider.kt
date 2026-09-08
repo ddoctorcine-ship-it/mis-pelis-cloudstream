@@ -1,1 +1,73 @@
-Código base
+package com.mis-pelis-cloudstream
+
+import com.lagradost.cloudstream3.*
+import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.M3u8Helper
+import org.jsoup.nodes.Element
+
+class MiPaginaPelisProvider : MainAPI() { 
+    override var mainUrl = "https://seriesgod.com"
+    override var name = "SeriesGod"
+    override val supportedTypes = setOf(TvType.TvSeries, TvType.Movie)
+    override var lang = "es"
+
+    // Buscador principal dentro de la app
+    override suspend fun search(query: String): List<SearchResponse> {
+        val url = "$mainUrl/?s=$query"
+        val response = app.get(url).text
+        val document = org.jsoup.Jsoup.parse(response)
+        
+        return document.select("div.result-item").mapNotNull {
+            val title = it.selectFirst("div.title a")?.text() ?: return@mapNotNull null
+            val href = it.selectFirst("div.title a")?.attr("href") ?: return@mapNotNull null
+            val poster = it.selectFirst("div.image img")?.attr("src")
+            
+            newMovieSearchResponse(title, href, TvType.Movie) {
+                this.posterUrl = poster
+            }
+        }
+    }
+
+    // Carga de información (Sinopsis, Títulos, Temporadas)
+    override suspend fun load(url: String): LoadResponse? {
+        val response = app.get(url).text
+        val document = org.jsoup.Jsoup.parse(response)
+        
+        val title = document.selectFirst("div.data h1")?.text() ?: return null
+        val plot = document.selectFirst("div.wp-content p")?.text()
+        val poster = document.selectFirst("div.poster img")?.attr("src")
+
+        return newMovieLoadResponse(title, url, TvType.Movie, url) {
+            this.posterUrl = poster
+            this.plot = plot
+        }
+    }
+
+    // Extracción de reproductores de video (Streamwish, Filemoon, etc.)
+    override suspend fun loadLinks(
+        data: String,
+        isCasting: Boolean,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ): Boolean {
+        val response = app.get(data).text
+        val document = org.jsoup.Jsoup.parse(response)
+        
+        // Busca los enlaces embebidos en los iframes del sitio
+        document.select("iframe").forEach {
+            val src = it.attr("src")
+            if (src.contains("streamwish") || src.contains("filemoon") || src.contains("player")) {
+                callback.invoke(
+                    ExtractorLink(
+                        "SeriesGod Player",
+                        "SeriesGod Player",
+                        src,
+                        url,
+                        Qualities.Unknown.value
+                    )
+                )
+            }
+        }
+        return true
+    }
+}
