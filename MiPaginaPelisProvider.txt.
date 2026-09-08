@@ -1,4 +1,5 @@
-package com.mis-pelis-cloudstream
+package com.mis_pelis_cloudstream
+
 
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.ExtractorLink
