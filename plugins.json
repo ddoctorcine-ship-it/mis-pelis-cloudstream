@@ -1,11 +1,10 @@
 [
   {
     "id": "com.mis-pelis-cloudstream.MiPaginaPelisProvider",
-    "name": "Mi Canal Pelis",
+    "name": "SeriesGod",
     "version": 1,
     "url": "https://githubusercontent.com",
-    "types": ["Movie", "TvSeries"],
+    "types": ["TvSeries", "Movie"],
     "language": "es"
   }
 ]
-
