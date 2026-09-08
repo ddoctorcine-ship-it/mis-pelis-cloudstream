@@ -1,0 +1,9 @@
+{
+  "name": "Pelis Para Todos Gracias",
+  "description": "Mi propio repositorio de canales de películas y series",
+  "manifestVersion": 3,
+  "pluginLists": [
+    "https://githubusercontent.com"
+  ]
+}
+
